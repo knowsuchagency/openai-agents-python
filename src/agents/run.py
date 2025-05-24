@@ -1036,8 +1036,10 @@ class Runner:
         if agent.memory is None:
             return None
         elif agent.memory is True:
-            # Use default SQLite implementation
-            return SQLiteSessionMemory()
+            # Use default SQLite implementation - cache it on the agent
+            if not hasattr(agent, "_cached_session_memory"):
+                agent._cached_session_memory = SQLiteSessionMemory()
+            return agent._cached_session_memory
         elif isinstance(agent.memory, SessionMemory):
             return agent.memory
         else:

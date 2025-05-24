@@ -14,52 +14,51 @@ class TestSessionMemory:
     @pytest.mark.asyncio
     async def test_sqlite_session_memory_basic_operations(self):
         """Test basic SQLite session memory operations."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            db_path = Path(temp_dir) / "test.db"
-            memory = SQLiteSessionMemory(db_path)
+        # Test with in-memory database (default)
+        memory = SQLiteSessionMemory()
 
-            # Test empty session
-            history = await memory.load_session("test_session")
-            assert history == []
+        # Test empty session
+        history = await memory.load_session("test_session")
+        assert history == []
 
-            # Test session doesn't exist
-            exists = await memory.session_exists("test_session")
-            assert not exists
+        # Test session doesn't exist
+        exists = await memory.session_exists("test_session")
+        assert not exists
 
-            # Test save session
-            test_history = [
-                {"role": "user", "content": "Hello"},
-                {"role": "assistant", "content": "Hi there!"},
-            ]
-            await memory.save_session("test_session", test_history)
+        # Test save session
+        test_history = [
+            {"role": "user", "content": "Hello"},
+            {"role": "assistant", "content": "Hi there!"},
+        ]
+        await memory.save_session("test_session", test_history)
 
-            # Test session exists
-            exists = await memory.session_exists("test_session")
-            assert exists
+        # Test session exists
+        exists = await memory.session_exists("test_session")
+        assert exists
 
-            # Test load session
-            loaded_history = await memory.load_session("test_session")
-            assert loaded_history == test_history
+        # Test load session
+        loaded_history = await memory.load_session("test_session")
+        assert loaded_history == test_history
 
-            # Test append to session
-            new_items = [{"role": "user", "content": "How are you?"}]
-            await memory.append_to_session("test_session", new_items)
+        # Test append to session
+        new_items = [{"role": "user", "content": "How are you?"}]
+        await memory.append_to_session("test_session", new_items)
 
-            updated_history = await memory.load_session("test_session")
-            assert len(updated_history) == 3
-            assert updated_history[-1] == new_items[0]
+        updated_history = await memory.load_session("test_session")
+        assert len(updated_history) == 3
+        assert updated_history[-1] == new_items[0]
 
-            # Test list sessions
-            sessions = await memory.list_sessions()
-            assert "test_session" in sessions
+        # Test list sessions
+        sessions = await memory.list_sessions()
+        assert "test_session" in sessions
 
-            # Test clear session
-            await memory.clear_session("test_session")
-            history = await memory.load_session("test_session")
-            assert history == []
+        # Test clear session
+        await memory.clear_session("test_session")
+        history = await memory.load_session("test_session")
+        assert history == []
 
-            # Cleanup
-            await memory.cleanup()
+        # Cleanup
+        await memory.cleanup()
 
     @pytest.mark.asyncio
     async def test_agent_with_session_memory_boolean(self):
