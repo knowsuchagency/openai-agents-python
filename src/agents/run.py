@@ -100,6 +100,9 @@ class RunConfig:
     or process. For example, you might use a chat thread ID.
     """
 
+    session_id: str | None = None
+    """Identifier used with ``Agent.memory`` to load and store conversation history."""
+
     trace_metadata: dict[str, Any] | None = None
     """
     An optional dictionary of additional metadata to include with the trace.
@@ -153,6 +156,14 @@ class Runner:
             hooks = RunHooks[Any]()
         if run_config is None:
             run_config = RunConfig()
+
+        if run_config.session_id and starting_agent.memory:
+            history = starting_agent.memory.load(run_config.session_id)
+            input = history + ItemHelpers.input_to_new_input_list(input)
+
+        if run_config.session_id and starting_agent.memory:
+            history = starting_agent.memory.load(run_config.session_id)
+            input = history + ItemHelpers.input_to_new_input_list(input)
 
         tool_use_tracker = AgentToolUseTracker()
 
@@ -262,7 +273,7 @@ class Runner:
                             turn_result.next_step.output,
                             context_wrapper,
                         )
-                        return RunResult(
+                        result = RunResult(
                             input=original_input,
                             new_items=generated_items,
                             raw_responses=model_responses,
@@ -272,6 +283,12 @@ class Runner:
                             output_guardrail_results=output_guardrail_results,
                             context_wrapper=context_wrapper,
                         )
+
+                        if run_config.session_id and starting_agent.memory:
+                            starting_agent.memory.store(
+                                run_config.session_id, result.to_input_list()
+                            )
+                        return result
                     elif isinstance(turn_result.next_step, NextStepHandoff):
                         current_agent = cast(Agent[TContext], turn_result.next_step.new_agent)
                         current_span.finish(reset_current=True)
@@ -606,6 +623,10 @@ class Runner:
                         streamed_result.output_guardrail_results = output_guardrail_results
                         streamed_result.final_output = turn_result.next_step.output
                         streamed_result.is_complete = True
+                        if run_config.session_id and starting_agent.memory:
+                            starting_agent.memory.store(
+                                run_config.session_id, streamed_result.to_input_list()
+                            )
                         streamed_result._event_queue.put_nowait(QueueCompleteSentinel())
                     elif isinstance(turn_result.next_step, NextStepRunAgain):
                         pass

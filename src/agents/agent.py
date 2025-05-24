@@ -12,6 +12,7 @@ from .agent_output import AgentOutputSchemaBase
 from .guardrail import InputGuardrail, OutputGuardrail
 from .handoffs import Handoff
 from .items import ItemHelpers
+from .memory import SessionMemory, SQLiteSessionMemory
 from .logger import logger
 from .mcp import MCPUtil
 from .model_settings import ModelSettings
@@ -142,6 +143,10 @@ class Agent(Generic[TContext]):
     Runs only if the agent produces a final output.
     """
 
+    memory: SessionMemory | bool | None = None
+    """Session memory used to persist conversation history. If ``True``, the default
+    SQLite-based implementation is used."""
+
     output_type: type[Any] | AgentOutputSchemaBase | None = None
     """The type of the output object. If not provided, the output will be `str`. In most cases,
     you should pass a regular Python type (e.g. a dataclass, Pydantic model, TypedDict, etc).
@@ -177,6 +182,10 @@ class Agent(Generic[TContext]):
     reset_tool_choice: bool = True
     """Whether to reset the tool choice to the default value after a tool has been called. Defaults
     to True. This ensures that the agent doesn't enter an infinite loop of tool usage."""
+
+    def __post_init__(self) -> None:
+        if isinstance(self.memory, bool):
+            self.memory = SQLiteSessionMemory() if self.memory else None
 
     def clone(self, **kwargs: Any) -> Agent[TContext]:
         """Make a copy of the agent, with the given arguments changed. For example, you could do:

@@ -6,6 +6,7 @@ from openai import AsyncOpenAI
 
 from . import _config
 from .agent import Agent, ToolsToFinalOutputFunction, ToolsToFinalOutputResult
+from .memory import SessionMemory, SQLiteSessionMemory
 from .agent_output import AgentOutputSchema, AgentOutputSchemaBase
 from .computer import AsyncComputer, Button, Computer, Environment
 from .exceptions import (
@@ -158,6 +159,8 @@ __all__ = [
     "Agent",
     "ToolsToFinalOutputFunction",
     "ToolsToFinalOutputResult",
+    "SessionMemory",
+    "SQLiteSessionMemory",
     "Runner",
     "Model",
     "ModelProvider",

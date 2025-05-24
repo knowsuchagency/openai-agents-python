@@ -20,7 +20,7 @@ The [`final_output`][agents.result.RunResultBase.final_output] property contains
 
 ## Inputs for the next turn
 
-You can use [`result.to_input_list()`][agents.result.RunResultBase.to_input_list] to turn the result into an input list that concatenates the original input you provided, to the items generated during the agent run. This makes it convenient to take the outputs of one agent run and pass them into another run, or to run it in a loop and append new user inputs each time.
+You can use [`result.to_input_list()`][agents.result.RunResultBase.to_input_list] to turn the result into an input list that concatenates the original input you provided, to the items generated during the agent run. This makes it convenient to take the outputs of one agent run and pass them into another run, or to run it in a loop and append new user inputs each time. If you configure session memory on the agent and pass a `session_id` via `RunConfig`, this step is handled for you.
 
 ## Last agent
 

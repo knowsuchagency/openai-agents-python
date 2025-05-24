@@ -69,21 +69,28 @@ Runner は以下のループを実行します。
 
 エージェント実行の終了時に、ユーザー に何を表示するかは自由です。たとえば、エージェント が生成したすべての新しい項目を表示する、または最終出力のみを表示する等です。いずれの場合でも、ユーザー がフォローアップ質問をしたら、再度 run メソッドを呼び出せます。
 
-次ターンの入力は、基底クラス [`RunResultBase.to_input_list()`][agents.result.RunResultBase.to_input_list] を使用して取得できます。
+次ターンの入力は、基底クラス [`RunResultBase.to_input_list()`][agents.result.RunResultBase.to_input_list] を使用して取得できます。さらに、エージェントにセッションメモリを設定し、`RunConfig` に `session_id` を渡すことで、毎回新しいユーザー入力だけを渡せば済むようになります。
 
 ```python
 async def main():
-    agent = Agent(name="Assistant", instructions="Reply very concisely.")
+    agent = Agent(name="Assistant", instructions="Reply very concisely.", memory=True)
 
     with trace(workflow_name="Conversation", group_id=thread_id):
         # First turn
-        result = await Runner.run(agent, "What city is the Golden Gate Bridge in?")
+        result = await Runner.run(
+            agent,
+            "What city is the Golden Gate Bridge in?",
+            run_config=RunConfig(session_id=thread_id),
+        )
         print(result.final_output)
         # San Francisco
 
         # Second turn
-        new_input = result.to_input_list() + [{"role": "user", "content": "What state is it in?"}]
-        result = await Runner.run(agent, new_input)
+        result = await Runner.run(
+            agent,
+            "What state is it in?",
+            run_config=RunConfig(session_id=thread_id),
+        )
         print(result.final_output)
         # California
 ```
